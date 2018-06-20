@@ -1,0 +1,75 @@
+image: influitive/assets:6.6
+
+before_script:
+  - npm config set //registry.npmjs.org/:_authToken="$NPM_AUTH_TOKEN"
+  - npm install --no-spin
+
+stages:
+  - test
+  - deploy
+
+test:
+  script:
+    - npm run test:ci
+
+build_qa:
+  variables:
+    PLUGINATOR_URL: https://app.influitiveqa.com/pluginator/
+    PLUGINATOR_USER: $qa_PLUGINATOR_USER
+    PLUGINATOR_PASS: $qa_PLUGINATOR_PASS
+    CDN_URL: https://static.influitive.com
+    S3: s3://influitive-static-assets/
+    NODE_ENV: qa
+    HUB_API: https://app.influitiveqa.com
+  stage: deploy
+  only:
+    - development
+  script:
+    - ./node_modules/.bin/infl deploy
+
+build_staging:
+  variables:
+    PLUGINATOR_URL: https://app.influitives.com/pluginator/
+    PLUGINATOR_USER: $staging_PLUGINATOR_USER
+    PLUGINATOR_PASS: $staging_PLUGINATOR_PASS
+    CDN_URL: https://static.influitive.com
+    S3: s3://influitive-static-assets/
+    NODE_ENV: production
+  stage: deploy
+  only:
+    - master
+  script:
+    - ./node_modules/.bin/infl deploy
+
+build_demo:
+  variables:
+    PLUGINATOR_URL: https://app.influitivedemo.com/pluginator/
+    PLUGINATOR_USER: $demo_PLUGINATOR_USER
+    PLUGINATOR_PASS: $demo_PLUGINATOR_PASS
+    CDN_URL: https://static.influitive.com
+    S3: s3://influitive-static-assets/
+    NODE_ENV: production
+  stage: deploy
+  only:
+    - /^release-.*$/
+  except:
+    - branches
+  script:
+    - ./node_modules/.bin/infl deploy
+
+build_prod:
+  variables:
+    PLUGINATOR_URL: https://app.influitive.com/pluginator/
+    PLUGINATOR_USER: $production_PLUGINATOR_USER
+    PLUGINATOR_PASS: $production_PLUGINATOR_PASS
+    CDN_URL: https://static.influitive.com
+    S3: s3://influitive-static-assets/
+    NODE_ENV: production
+  stage: deploy
+  only:
+    - /^release-.*$/
+  except:
+   - branches
+  script:
+    - ./node_modules/.bin/infl deploy
+
